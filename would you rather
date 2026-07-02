@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Would You Rather?</title>
+    <!-- Stable Brython Core CDN Libraries -->
+    <script type="text/javascript" src="https://cloudflare.com"></script>
+    <script type="text/javascript" src="https://cloudflare.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #eef2f3; padding: 40px 20px; margin: 0; }
+        .container { max-width: 550px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        h1 { color: #2c3e50; font-size: 28px; margin-bottom: 5px; }
+        #counter { font-size: 14px; font-weight: bold; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px; }
+        button { display: block; width: 100%; margin: 18px 0; padding: 20px; font-size: 18px; font-weight: 600; cursor: pointer; border: none; border-radius: 8px; background: #3498db; color: white; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2); }
+        button:hover { background: #2980b9; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(41, 128, 185, 0.3); }
+        button:active { transform: translateY(0); }
+    </style>
+</head>
+<body onload="brython()">
+
+<div class="container">
+    <h1>Would You Rather...</h1>
+    <p id="counter">Question 1</p>
+    <button id="optA">Loading Scenario A...</button>
+    <button id="optB">Loading Scenario B...</button>
+</div>
+
+<script type="text/python">
+from browser import document
+import random
+
+HAND_CRAFTED_QUESTIONS = [
+    ("have the ability to fly", "be able to teleport anywhere instantly"),
+    ("always be 15 minutes late", "always be 20 minutes early"),
+    ("find true love", "win 10 million dollars"),
+    ("lose the ability to speak", "always say everything that is on your mind"),
+    ("live without music", "live without television"),
+    ("know the history of every object you touch", "be able to talk to animals"),
+]
+
+SUPERPOWERS = ["invisible", "immortal", "able to breathe underwater", "able to read minds", "super strong", "able to change your appearance"]
+CURSES = ["stub your toe every morning", "only eat cold soup", "have your phone always at 1%", "always hear a faint buzzing", "forget everyone's name"]
+REWARDS = ["free pizza for life", "never needing sleep", "mastering every musical instrument", "perfect health forever"]
+
+asked_questions = set()
+q_count = 1
+
+def generate_dynamic_question():
+    templates = [
+        ("be completely {power_1}", "be completely {power_2}"),
+        ("deal with having to {curse_1}", "deal with having to {curse_2}"),
+        ("get {reward_1}", "get {reward_2}"),
+        ("be {power_1} but you {curse_1}", "be ordinary but you get {reward_1}")
+    ]
+    template = random.choice(templates)
+    p1, p2 = random.sample(SUPERPOWERS, 2)
+    c1, c2 = random.sample(CURSES, 2)
+    r1, r2 = random.sample(REWARDS, 2)
+    
+    return (template.format(power_1=p1, power_2=p2, curse_1=c1, curse_2=c2, reward_1=r1, reward_2=r2),
+            template.format(power_1=p1, power_2=p2, curse_1=c1, curse_2=c2, reward_1=r1, reward_2=r2))
+
+def get_next_question():
+    global asked_questions
+    available_fixed = [q for q in HAND_CRAFTED_QUESTIONS if q not in asked_questions]
+    if available_fixed:
+        chosen = random.choice(available_fixed)
+        asked_questions.add(chosen)
+        return chosen
+    while True:
+        dynamic_q = generate_dynamic_question()
+        if dynamic_q not in asked_questions:
+            asked_questions.add(dynamic_q)
+            return dynamic_q
+
+def display_new_question(event=None):
+    global q_count
+    option_a, option_b = get_next_question()
+    document["optA"].text = option_a
+    document["optB"].text = option_b
+    document["counter"].text = f"Question {q_count}"
+    q_count += 1
+
+document["optA"].bind("click", display_new_question)
+document["optB"].bind("click", display_new_question)
+
+# Run initial execution
+display_new_question()
+</script>
+
+</body>
+</html>
